@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29306.81
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureEventHubAppender", "AzureEventHubAppender\AzureEventHubAppender.csproj", "{B6717E91-F711-485B-978F-28A69B259564}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureEventHubAppender.Tests", "AzureEventHubAppender.Tests\AzureEventHubAppender.Tests.csproj", "{117A5F45-C7F8-4AE8-BE69-4975872C892A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{3C56530F-5A14-47CA-83B6-4B4179472F93}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B6717E91-F711-485B-978F-28A69B259564}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6717E91-F711-485B-978F-28A69B259564}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6717E91-F711-485B-978F-28A69B259564}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6717E91-F711-485B-978F-28A69B259564}.Release|Any CPU.Build.0 = Release|Any CPU
+		{117A5F45-C7F8-4AE8-BE69-4975872C892A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{117A5F45-C7F8-4AE8-BE69-4975872C892A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{117A5F45-C7F8-4AE8-BE69-4975872C892A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{117A5F45-C7F8-4AE8-BE69-4975872C892A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8D6FD211-C194-4DC6-A3D4-B3F6B622E12E}
+	EndGlobalSection
+EndGlobal

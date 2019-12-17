@@ -12,6 +12,9 @@
   </ItemGroup>
   <PropertyGroup>
    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+   <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+   <PackageProjectUrl>https://github.com/mmckechney/AzureEventHubAppender</PackageProjectUrl>
+   <RepositoryUrl>https://github.com/mmckechney/AzureEventHubAppender</RepositoryUrl>
 </PropertyGroup> 
 
 </Project>

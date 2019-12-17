@@ -52,7 +52,7 @@ steps:
     command: pack
     projects: 'AzureEventHubAppender/AzureEventHubAppender.csproj'
     arguments: '--output $(Build.ArtifactStagingDirectory) -p:PackageVersion=$(majorVersion).$(minorVersion).$(patchVersion)'
-- 
+
 - task: NuGetCommand@2
   inputs:
     command: 'push'

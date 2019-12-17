@@ -360,11 +360,29 @@ namespace Logging.Tests
             appender.PublicAppend(loggingEvent);
             appender.PublicAppend(loggingEvent);
             appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
 
             appender.PublicOnClose();
 
             mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.Exactly(2));
+            mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.AtLeast(2));
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
         }

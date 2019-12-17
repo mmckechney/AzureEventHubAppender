@@ -50,7 +50,7 @@ steps:
   inputs:
     command: 'pack'
     packagesToPack: '**/*.csproj;!**/*.Tests.csproj'
-    versioningScheme: 'byBuildNumber'
+    versioningScheme: 'byPrereleaseNumber'
     majorVersion: $(majorVersion)
     minorVersion: $(minorVersion)
     patchVersion: $(patchVersion)

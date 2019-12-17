@@ -24,6 +24,10 @@ steps:
     packageType: 'sdk'
     version: '3.1.100'
 
+- task: NuGetToolInstaller@1
+  inputs:
+    checkLatest: true
+
 - task: DotNetCoreCLI@2
   displayName: Restore NuGet packages
   inputs:

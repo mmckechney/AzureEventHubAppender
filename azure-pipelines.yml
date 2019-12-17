@@ -40,11 +40,11 @@ steps:
     projects: '**/*.csproj'
     arguments: '--configuration $(BuildConfiguration)'
 
-- task: DotNetCoreCLI@2
-  displayName: Run unit tests
-  inputs:
-    command: test
-    projects: '**/*.csproj'
+# - task: DotNetCoreCLI@2
+#   displayName: Run unit tests
+#   inputs:
+#     command: test
+#     projects: '**/*.csproj'
 
 - task: DotNetCoreCLI@2
   inputs:

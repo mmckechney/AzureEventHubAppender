@@ -47,11 +47,13 @@ steps:
     projects: '**/*.csproj'
 
 - task: DotNetCoreCLI@2
-  displayName: Create NuGet Package
   inputs:
-    command: pack
-    projects: 'AzureEventHubAppender/AzureEventHubAppender.csproj'
-    arguments: '--output $(Build.ArtifactStagingDirectory) -p:PackageVersion=$(majorVersion).$(minorVersion).$(patchVersion)'
+    command: 'pack'
+    packagesToPack: '**/*.csproj;!**/*.Tests.csproj'
+    versioningScheme: 'byBuildNumber'
+    majorVersion: $(majorVersion)
+    minorVersion: $(minorVersion)
+    patchVersion: $(patchVersion)
 
 - task: NuGetCommand@2
   inputs:

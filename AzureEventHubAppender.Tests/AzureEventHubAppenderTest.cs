@@ -14,7 +14,7 @@ using System.Linq;
 using System.Threading;
 using Logging;
 
-namespace StratusLogging.Tests
+namespace Logging.Tests
 {
     [TestClass]
     [ExcludeFromCodeCoverage]
@@ -351,6 +351,12 @@ namespace StratusLogging.Tests
 
             LoggingEvent loggingEvent = GetLoggingEvent(message);
 
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
             appender.PublicAppend(loggingEvent);
             appender.PublicAppend(loggingEvent);
             appender.PublicAppend(loggingEvent);

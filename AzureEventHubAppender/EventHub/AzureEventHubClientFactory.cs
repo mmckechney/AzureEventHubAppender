@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BlueSkyDev.Logging.EventHub
+namespace Logging.EventHub
 {
     [ExcludeFromCodeCoverage]
 
@@ -15,9 +15,9 @@ namespace BlueSkyDev.Logging.EventHub
     /// 
     public class AzureEventHubClientFactory : IEventHubClientFactory
     {
-        public IEventHubClient GetEventHubClient(string ConnectionString)
+        public IEventHubClient GetEventHubClient(string ConnectionString, string EventHubName)
         {
-            return AzureEventHubClient.CreateFromConnectionString(ConnectionString);
+            return AzureEventHubClient.CreateFromConnectionString(ConnectionString, EventHubName);
         }
     }
 }

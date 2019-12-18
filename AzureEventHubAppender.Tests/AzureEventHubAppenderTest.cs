@@ -6,7 +6,7 @@ using Moq;
 using System.Configuration;
 using System.Net;
 using log4net.Core;
-using Microsoft.ServiceBus.Messaging;
+using Microsoft.Azure.EventHubs;
 using log4net.Layout;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,7 +14,7 @@ using System.Linq;
 using System.Threading;
 using Logging;
 
-namespace StratusLogging.Tests
+namespace Logging.Tests
 {
     [TestClass]
     [ExcludeFromCodeCoverage]
@@ -282,7 +282,7 @@ namespace StratusLogging.Tests
                        .Callback((string cs, string ehn) => { Assert.AreEqual(connectionString, cs); Assert.AreEqual(EventHubName, ehn); })
                        .Returns(evenHub);
 
-            mockEventHub.Setup(m => m.SendBatchAsync(It.IsAny<IEnumerable<EventData>>()))
+            mockEventHub.Setup(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
                         .Callback((IEnumerable<EventData> d) => { Assert.AreEqual(1, d.Count()); })
                         .Returns(Task.FromResult(0));
             mockEventHub.Setup(m => m.CloseAsync()).Returns(Task.FromResult(0));
@@ -308,7 +308,7 @@ namespace StratusLogging.Tests
             appender.PublicOnClose();
 
             mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            mockEventHub.Verify(mock => mock.SendBatchAsync(It.IsAny<List<EventData>>()), Times.Once);
+            mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.Once);
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
         }
@@ -330,7 +330,7 @@ namespace StratusLogging.Tests
             mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()))
                        .Returns(evenHub);
 
-            mockEventHub.Setup(m => m.SendBatchAsync(It.IsAny<IEnumerable<EventData>>()))
+            mockEventHub.Setup(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
                         .Returns(async (IEnumerable<EventData> d) => { await Task.Delay(100); });
             mockEventHub.Setup(m => m.CloseAsync()).Returns(Task.FromResult(0));
 
@@ -354,11 +354,35 @@ namespace StratusLogging.Tests
             appender.PublicAppend(loggingEvent);
             appender.PublicAppend(loggingEvent);
             appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
+            appender.PublicAppend(loggingEvent);
 
             appender.PublicOnClose();
 
             mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            mockEventHub.Verify(mock => mock.SendBatchAsync(It.IsAny<List<EventData>>()), Times.Exactly(2));
+            mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.AtLeast(2));
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
         }
@@ -381,7 +405,7 @@ namespace StratusLogging.Tests
             mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()))
                        .Returns(evenHub);
 
-            mockEventHub.Setup(m => m.SendBatchAsync(It.IsAny<IEnumerable<EventData>>()))
+            mockEventHub.Setup(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
                         .Returns(async (IEnumerable<EventData> d) => { await Task.Delay(100); });
             mockEventHub.Setup(m => m.CloseAsync()).Returns(Task.FromResult(0));
 
@@ -408,7 +432,7 @@ namespace StratusLogging.Tests
             appender.PublicOnClose();
 
             mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            mockEventHub.Verify(mock => mock.SendBatchAsync(It.IsAny<List<EventData>>()), Times.Once);
+            mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.Once);
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
         }
@@ -489,7 +513,7 @@ namespace StratusLogging.Tests
 
 
             
-            mockEventHub.Setup(m => m.SendBatchAsync(It.IsAny<IEnumerable<EventData>>()))
+            mockEventHub.Setup(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
                         .Callback((IEnumerable<EventData> d) => { Assert.AreEqual(1, d.Count()); })
                         .Returns(Task.FromResult(0));
             mockEventHub.Setup(m => m.CloseAsync()).Returns(Task.FromResult(0));
@@ -534,7 +558,7 @@ namespace StratusLogging.Tests
                        .Callback((string cs, string ehn) => { Assert.AreEqual(connectionString, cs); Assert.AreEqual(EventHubName, ehn); })
                        .Returns(evenHub);
 
-            mockEventHub.SetupSequence(m => m.SendBatchAsync(It.IsAny<IEnumerable<EventData>>()))
+            mockEventHub.SetupSequence(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
                         .Throws(new Exception("Sending is not working"))
                         .Returns(Task.FromResult(0));
 
@@ -561,7 +585,7 @@ namespace StratusLogging.Tests
             appender.PublicOnClose();
 
             mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            mockEventHub.Verify(mock => mock.SendBatchAsync(It.IsAny<List<EventData>>()), Times.Exactly(2));
+            mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.Exactly(2));
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
         }
@@ -584,7 +608,7 @@ namespace StratusLogging.Tests
                        .Callback((string cs, string ehn) => { Assert.AreEqual(connectionString, cs); Assert.AreEqual(EventHubName, ehn); })
                        .Returns(evenHub);
 
-            mockEventHub.SetupSequence(m => m.SendBatchAsync(It.IsAny<IEnumerable<EventData>>()))
+            mockEventHub.SetupSequence(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
                         .Throws(new Exception("Sending is not working"))
                         .Throws(new Exception("Sending is not working"))
                         .Returns(Task.FromResult(0));
@@ -613,7 +637,7 @@ namespace StratusLogging.Tests
             appender.PublicOnClose();
 
             mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            mockEventHub.Verify(mock => mock.SendBatchAsync(It.IsAny<List<EventData>>()), Times.Exactly(2));
+            mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.Exactly(2));
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
         }
@@ -648,7 +672,7 @@ namespace StratusLogging.Tests
                        .Callback((string cs, string ehn) => { Assert.AreEqual(connectionString, cs); Assert.AreEqual(EventHubName, ehn); })
                        .Returns(evenHub);
 
-            mockEventHub.Setup(m => m.SendBatchAsync(It.IsAny<IEnumerable<EventData>>()))
+            mockEventHub.Setup(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
                         .Callback((IEnumerable<EventData> d) => { Assert.AreEqual(1, d.Count()); })
                         .Returns(Task.FromResult(0));
             mockEventHub.Setup(m => m.CloseAsync()).Returns(Task.FromResult(0));
@@ -676,7 +700,7 @@ namespace StratusLogging.Tests
             appender.Dispose();
 
             mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            mockEventHub.Verify(mock => mock.SendBatchAsync(It.IsAny<List<EventData>>()), Times.Once);
+            mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.Once);
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
         }

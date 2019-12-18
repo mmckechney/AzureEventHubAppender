@@ -1,9 +1,9 @@
-﻿using Microsoft.ServiceBus.Messaging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Azure.EventHubs;
 
 namespace Logging.EventHub
 {
@@ -32,7 +32,7 @@ namespace Logging.EventHub
         //     User should make sure the total serialized size of eventDataList should be under
         //     the size limit of one event data transmission, which is 256k by default. Also
         //     note that there will be some overhead to form the batch.
-        Task SendBatchAsync(IEnumerable<EventData> eventDataList);
+        Task SendAsync(IEnumerable<EventData> eventDataList);
 
         //
         // Summary:

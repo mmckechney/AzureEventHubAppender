@@ -1,7 +1,7 @@
 ﻿using Logging.EventHub;
 using log4net.Appender;
 using log4net.Core;
-using Microsoft.ServiceBus.Messaging;
+using Microsoft.Azure.EventHubs;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
@@ -11,7 +11,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web.Configuration;
+//using System.Web.Configuration;
 
 namespace Logging
 {
@@ -266,7 +266,7 @@ namespace Logging
                         {
                             attempt++;
                             // Send the batch
-                            await eventHubClient.SendBatchAsync(batch).ConfigureAwait(false);
+                            await eventHubClient.SendAsync(batch).ConfigureAwait(false);
                             batchSent = true;
                         }
                         catch (Exception exception)

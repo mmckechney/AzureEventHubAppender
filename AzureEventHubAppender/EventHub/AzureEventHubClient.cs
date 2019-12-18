@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.ServiceBus.Messaging;
+using Microsoft.Azure.EventHubs;
 
 namespace Logging.EventHub
 {
@@ -13,12 +14,12 @@ namespace Logging.EventHub
     /// <summary>
     /// Azure implementation of IEventHubClient - this is just a thin implementaiton to enable unit testing
     /// </summary>
-    class AzureEventHubClient : IEventHubClient
+    class AzureEventHubClient : Logging.EventHub.IEventHubClient
     {
         private EventHubClient EventHubClient  { get; }
         private AzureEventHubClient(string ConnectionString, string EventHubName)
         {
-            EventHubClient = EventHubClient.CreateFromConnectionString(ConnectionString, EventHubName);
+            EventHubClient = EventHubClient.CreateFromConnectionString(ConnectionString);
         }
 
 
@@ -26,7 +27,6 @@ namespace Logging.EventHub
         {
             return new AzureEventHubClient(ConnectionString, EventHubName);
         }
-
 
         #region IEventHubClient
 
@@ -50,9 +50,9 @@ namespace Logging.EventHub
         //     User should make sure the total serialized size of eventDataList should be under
         //     the size limit of one event data transmission, which is 256k by default. Also
         //     note that there will be some overhead to form the batch.
-        public async Task SendBatchAsync(IEnumerable<EventData> eventDataList)
+        public async Task SendAsync(IEnumerable<EventData> eventDataList)
         {
-            await EventHubClient.SendBatchAsync(eventDataList).ConfigureAwait(false);
+            await EventHubClient.SendAsync(eventDataList).ConfigureAwait(false);
         }
 
         //
@@ -73,5 +73,6 @@ namespace Logging.EventHub
         }
 
         #endregion
+
     }
 }

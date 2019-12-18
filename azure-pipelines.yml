@@ -13,31 +13,48 @@ variables:
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  majorVersion : 1
+  minorVersion : 1
+  patchVersion : 0
 
 steps:
+
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '3.1.100'
+
 - task: NuGetToolInstaller@1
-
-- task: NuGetCommand@2
   inputs:
-    restoreSolution: '$(solution)'
+    checkLatest: true
 
-- task: VSBuild@1
+- task: DotNetCoreCLI@2
+  displayName: Restore NuGet packages
   inputs:
-    solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)"'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    command: restore
+    projects: '**/*.csproj'
 
-- task: VSTest@2
+- task: DotNetCoreCLI@2
+  displayName: Build projects
   inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(BuildConfiguration)'
 
-- task: NuGetCommand@2
+# - task: DotNetCoreCLI@2
+#   displayName: Run unit tests
+#   inputs:
+#     command: test
+#     projects: '**/*.csproj'
+
+- task: DotNetCoreCLI@2
   inputs:
     command: 'pack'
-    packagesToPack: '**\*.csproj;!**\*.Tests.csproj'
-    versioningScheme: 'off'
+    packagesToPack: '**/*.csproj;!**/*.Tests.csproj'
+    versioningScheme: 'byPrereleaseNumber'
+    majorVersion: $(majorVersion)
+    minorVersion: $(minorVersion)
+    patchVersion: $(patchVersion)
+
 - task: NuGetCommand@2
   inputs:
     command: 'push'

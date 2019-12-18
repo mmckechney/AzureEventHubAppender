@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.EventHubs;
 
-namespace Logging.EventHub
+namespace BlueSkyDev.Logging.EventHub
 {
     /// <summary>
     /// Interface for using Event Hub client - this is just a thin class to make unit testing possible

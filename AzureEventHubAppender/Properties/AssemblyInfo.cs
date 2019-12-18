@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("AzureEventHubAppender")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Log4Net Appender for Azure Event Hub. \r\nOriginal code from https://github.com/gbryniarski/AzureEventHubAppender \r\nUpdated to latest libraries and .NET Standard")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("BlueSkyDev.co")]
 [assembly: AssemblyProduct("AzureEventHubAppender")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]

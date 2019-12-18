@@ -47,6 +47,7 @@ steps:
 #     projects: '**/*.csproj'
 
 - task: DotNetCoreCLI@2
+  displayName: "Create NuGet Packages"
   inputs:
     command: 'pack'
     packagesToPack: '**/*.csproj;!**/*.Tests.csproj'
@@ -56,6 +57,7 @@ steps:
     patchVersion: $(patchVersion)
 
 - task: NuGetCommand@2
+  displayName: "Push NuGet package to artifact repository"
   inputs:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'

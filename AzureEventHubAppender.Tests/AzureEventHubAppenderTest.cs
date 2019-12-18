@@ -1,18 +1,18 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using BlueSkyDev.Logging;
 using BlueSkyDev.Logging.EventHub;
-using System.Diagnostics.CodeAnalysis;
-using Moq;
-using System.Configuration;
-using System.Net;
 using log4net.Core;
-using Microsoft.Azure.EventHubs;
 using log4net.Layout;
+using Microsoft.Azure.EventHubs;
+using Microsoft.Extensions.Configuration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net;
 using System.Threading;
-using BlueSkyDev.Logging;
+using System.Threading.Tasks;
 
 namespace Logging.Tests
 {
@@ -21,6 +21,15 @@ namespace Logging.Tests
 
     public class AzureEventHubAppenderTest
     {
+        IConfiguration config;
+        const string eventHubConnection = "EventHub.ConnectionString";
+        public AzureEventHubAppenderTest()
+        {
+            config = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .Build();
+        }
+
         [TestMethod]
         public void DefaultConstructorTest()
         {
@@ -48,20 +57,19 @@ namespace Logging.Tests
             Mock<IEventHubClientFactory> mockFactory = new Mock<IEventHubClientFactory>();
             TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object);
 
-            if (ConfigurationManager.ConnectionStrings.Count < 0)
+            if (string.IsNullOrWhiteSpace(config[eventHubConnection]))
             {
-                Assert.Fail("At least 1 connection stirng must be defined in the App.Config for this test to work");
+                Assert.Fail($"The appsettings.json must have '{eventHubConnection}' defined for this test to work");
             }
 
-            string ConnectionStringName = ConfigurationManager.ConnectionStrings[0].Name;
-            //appender.EventHubNamespaceConnectionStringName = ConnectionStringName;
-            //appender.EventHubName = "EventHubName";
+            appender.ConnectionString = config[eventHubConnection];
+
 
             Assert.IsNotNull(appender.ConnectionString);
 
             appender.ActivateOptions();
 
-            Assert.AreEqual(ConfigurationManager.ConnectionStrings[0].ConnectionString, appender.ConnectionString);
+            Assert.AreEqual(config[eventHubConnection], appender.ConnectionString);
 
             appender.PublicOnClose();
         }
@@ -72,9 +80,9 @@ namespace Logging.Tests
             Mock<IEventHubClientFactory> mockFactory = new Mock<IEventHubClientFactory>();
             AzureEventHubAppender appender = new AzureEventHubAppender(mockFactory.Object);
 
-            if (ConfigurationManager.ConnectionStrings.Count < 0)
+            if (string.IsNullOrWhiteSpace( config[eventHubConnection]))
             {
-                Assert.Fail("At least 1 connection stirng must be defined in the App.Config for this test to work");
+                Assert.Fail($"The appsettings.json must have '{eventHubConnection}' defined for this test to work");
             }
 
             string ConnectionStringName = String.Empty;
@@ -86,69 +94,6 @@ namespace Logging.Tests
 
         }
 
-        //[TestMethod]
-        //public void ActivateMissingEventHubNameTest()
-        //{
-        //    Mock<IEventHubClientFactory> mockFactory = new Mock<IEventHubClientFactory>();
-        //    AzureEventHubAppender appender = new AzureEventHubAppender(mockFactory.Object);
-
-        //    if (ConfigurationManager.ConnectionStrings.Count < 0)
-        //    {
-        //        Assert.Fail("At least 1 connection stirng must be defined in the App.Config for this test to work");
-        //    }
-
-        //    string ConnectionStringName = ConfigurationManager.ConnectionStrings[0].Name;
-        //    appender.EventHubNamespaceConnectionStringName = ConnectionStringName;
-        //    appender.EventHubName = String.Empty;
-        //    appender.EventHubNameAppSettingKey = "NOY FOUND";
-
-        //    Assert.IsNotNull(appender.ConnectionString);
-
-        //    Assert.ThrowsException<ArgumentNullException>(() => appender.ActivateOptions());
-        //}
-
-        //[TestMethod]
-        //public void ActivateMissingEventHubAppSettingKey()
-        //{
-        //    Mock<IEventHubClientFactory> mockFactory = new Mock<IEventHubClientFactory>();
-        //    AzureEventHubAppender appender = new AzureEventHubAppender(mockFactory.Object);
-
-        //    if (ConfigurationManager.ConnectionStrings.Count < 0)
-        //    {
-        //        Assert.Fail("At least 1 connection stirng must be defined in the App.Config for this test to work");
-        //    }
-
-        //    string ConnectionStringName = ConfigurationManager.ConnectionStrings[0].Name;
-        //    appender.EventHubNamespaceConnectionStringName = ConnectionStringName;
-        //    appender.EventHubName = String.Empty;
-        //    appender.EventHubNameAppSettingKey = string.Empty;
-
-        //    Assert.IsNotNull(appender.ConnectionString);
-
-        //    Assert.ThrowsException<ArgumentNullException>(() => appender.ActivateOptions());
-        //}
-
-        //[TestMethod]
-        //public void ActivateMissingConnectionStringTest()
-        //{
-        //    Mock<IEventHubClientFactory> mockFactory = new Mock<IEventHubClientFactory>();
-        //    AzureEventHubAppender appender = new AzureEventHubAppender(mockFactory.Object);
-
-        //    if (ConfigurationManager.ConnectionStrings.Count < 0)
-        //    {
-        //        Assert.Fail("At least 1 connection stirng must be defined in the App.Config for this test to work");
-        //    }
-
-        //    string ConnectionStringName = "Not Found";
-        //    appender.EventHubNamespaceConnectionStringName = ConnectionStringName;
-        //    appender.EventHubName = "EventHubName";
-
-        //    Assert.IsNull(appender.ConnectionString);
-
-        //    Assert.ThrowsException<ArgumentNullException>(() => appender.ActivateOptions());
-
-        //}
-
         private class TestAzureEventHubAppender : AzureEventHubAppender
         {
             internal TestAzureEventHubAppender(IEventHubClientFactory eventHubClientFactory) : base(eventHubClientFactory) { }
@@ -159,9 +104,6 @@ namespace Logging.Tests
 
             public string PublicHostName => GetHostName();
 
-            public string PublicGetConfiguredApplicationSetting(string key) => GetConfiguredApplicationSetting(key);
-            public string PublicGetConfiguredConnectionString(string key) => GetConfiguredConnectionString(key);
-            public string PublicGetConfiguredEventHubName() => GetConfiguredEventHubName();
 
             public void PublicAppend(LoggingEvent loggingEvent) { base.Append(loggingEvent); }
 
@@ -183,18 +125,17 @@ namespace Logging.Tests
         [TestMethod]
         public void OnCloseNormalTest()
         {
+            string connectionString = config[eventHubConnection];
             Mock<IEventHubClientFactory> mockFactory = new Mock<IEventHubClientFactory>();
-            TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object);
-
-            if (ConfigurationManager.ConnectionStrings.Count < 0)
+            TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object)
             {
-                Assert.Fail("At least 1 connection stirng must be defined in the App.Config for this test to work");
+                ConnectionString = connectionString
+            };
+
+            if (string.IsNullOrWhiteSpace(config[eventHubConnection]))
+            {
+                Assert.Fail($"The appsettings.json must have '{eventHubConnection}' defined for this test to work");
             }
-
-            string ConnectionStringName = ConfigurationManager.ConnectionStrings[0].Name;
-            appender.EventHubNamespaceConnectionStringName = ConnectionStringName;
-            //appender.EventHubName = "EventHubName";
-
             Assert.IsNotNull(appender.ConnectionString);
 
             appender.ActivateOptions();
@@ -207,15 +148,12 @@ namespace Logging.Tests
         {
             Mock<IEventHubClientFactory> mockFactory = new Mock<IEventHubClientFactory>();
             TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object);
-
-            if (ConfigurationManager.ConnectionStrings.Count < 0)
+            if (string.IsNullOrWhiteSpace(config[eventHubConnection]))
             {
-                Assert.Fail("At least 1 connection string must be defined in the App.Config for this test to work");
+                Assert.Fail($"The appsettings.json must have '{eventHubConnection}' defined for this test to work");
             }
 
-            string ConnectionStringName = ConfigurationManager.ConnectionStrings[0].Name;
-            appender.EventHubNamespaceConnectionStringName = ConnectionStringName;
-            //appender.EventHubName = "EventHubName";
+            string ConnectionStringName = config[eventHubConnection];
 
             appender.PublicOnClose();
         }
@@ -267,9 +205,7 @@ namespace Logging.Tests
         [TestMethod]
         public void AppendNormalTest()
         {
-            string ConnectionStringName = ConfigurationManager.ConnectionStrings[0].Name;
-            string EventHubName = "EventHubName";
-            string connectionString = ConfigurationManager.ConnectionStrings[0].ConnectionString;
+             string connectionString = config[eventHubConnection];
 
             string message = "This is a logging message";
 
@@ -278,8 +214,8 @@ namespace Logging.Tests
 
             IEventHubClient evenHub = mockEventHub.Object;
 
-            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()))
-                       .Callback((string cs, string ehn) => { Assert.AreEqual(connectionString, cs); Assert.AreEqual(EventHubName, ehn); })
+            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>()))
+                       .Callback((string cs) => { Assert.AreEqual(connectionString, cs); })
                        .Returns(evenHub);
 
             mockEventHub.Setup(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
@@ -289,8 +225,7 @@ namespace Logging.Tests
 
             TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object)
             {
-                EventHubNamespaceConnectionStringName = ConnectionStringName,
-                EventHubName = EventHubName
+                ConnectionString = connectionString
             };
 
             PatternLayout patternLayout = new PatternLayout
@@ -307,7 +242,7 @@ namespace Logging.Tests
 
             appender.PublicOnClose();
 
-            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>()), Times.Once);
             mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.Once);
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
@@ -316,9 +251,7 @@ namespace Logging.Tests
         [TestMethod]
         public void AppendMultiEventTest()
         {
-            string ConnectionStringName = ConfigurationManager.ConnectionStrings[0].Name;
-            string EventHubName = "EventHubName";
-            string connectionString = ConfigurationManager.ConnectionStrings[0].ConnectionString;
+            string connectionString = config[eventHubConnection];
 
             string message = "This is a logging message";
 
@@ -327,7 +260,7 @@ namespace Logging.Tests
 
             IEventHubClient evenHub = mockEventHub.Object;
 
-            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()))
+            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>()))
                        .Returns(evenHub);
 
             mockEventHub.Setup(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
@@ -336,8 +269,7 @@ namespace Logging.Tests
 
             TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object)
             {
-                EventHubNamespaceConnectionStringName = ConnectionStringName,
-                EventHubName = EventHubName
+                ConnectionString = connectionString
             };
 
             PatternLayout patternLayout = new PatternLayout
@@ -381,7 +313,7 @@ namespace Logging.Tests
 
             appender.PublicOnClose();
 
-            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>()), Times.Once);
             mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.AtLeast(2));
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
@@ -391,9 +323,7 @@ namespace Logging.Tests
         [TestMethod]
         public void AppendGracefulExitTest()
         {
-            string ConnectionStringName = ConfigurationManager.ConnectionStrings[0].Name;
-            string EventHubName = "EventHubName";
-            string connectionString = ConfigurationManager.ConnectionStrings[0].ConnectionString;
+            string connectionString = config[eventHubConnection];
 
             string message = "This is a logging message";
 
@@ -402,7 +332,7 @@ namespace Logging.Tests
 
             IEventHubClient evenHub = mockEventHub.Object;
 
-            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()))
+            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>()))
                        .Returns(evenHub);
 
             mockEventHub.Setup(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
@@ -411,8 +341,7 @@ namespace Logging.Tests
 
             TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object)
             {
-                EventHubNamespaceConnectionStringName = ConnectionStringName,
-                EventHubName = EventHubName
+                ConnectionString = connectionString
             };
 
             PatternLayout patternLayout = new PatternLayout
@@ -431,7 +360,7 @@ namespace Logging.Tests
 
             appender.PublicOnClose();
 
-            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>()), Times.Once);
             mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.Once);
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
@@ -440,8 +369,6 @@ namespace Logging.Tests
         [TestMethod]
         public void OptionalPropertiesTest()
         {
-            string ConnectionStringName = "SomeConnectionStringName";
-            string EventHubName = "EventHubName";
             int batchSize = 200;
             int bufferSize = 201;
 
@@ -450,8 +377,6 @@ namespace Logging.Tests
 
             TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object)
             {
-                EventHubNamespaceConnectionStringName = ConnectionStringName,
-                EventHubName = EventHubName,
                 BatchSize = batchSize,
                 BufferSize = bufferSize
             };
@@ -463,8 +388,6 @@ namespace Logging.Tests
         [TestMethod]
         public void GetAdditionalItemsTest()
         {
-            string ConnectionStringName = "SomeConnectionStringName";
-            string EventHubName = "EventHubName";
             int batchSize = 200;
             int bufferSize = 201;
 
@@ -473,8 +396,6 @@ namespace Logging.Tests
 
             TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object)
             {
-                EventHubNamespaceConnectionStringName = ConnectionStringName,
-                EventHubName = EventHubName,
                 BatchSize = batchSize,
                 BufferSize = bufferSize
             };
@@ -499,16 +420,14 @@ namespace Logging.Tests
         [TestMethod]
         public void EventHubFailsInitializationTest()
         {
-            string ConnectionStringName = ConfigurationManager.ConnectionStrings[0].Name;
-            string EventHubName = "EventHubName";
-            string connectionString = ConfigurationManager.ConnectionStrings[0].ConnectionString;
+            string connectionString = config[eventHubConnection];
 
             Mock<IEventHubClientFactory> mockFactory = new Mock<IEventHubClientFactory>();
             Mock<IEventHubClient> mockEventHub = new Mock<IEventHubClient>();
 
             IEventHubClient evenHub = mockEventHub.Object;
 
-            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()))
+            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>()))
                        .Throws(new Exception("Failed"));
 
 
@@ -520,8 +439,7 @@ namespace Logging.Tests
 
             TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object)
             {
-                EventHubNamespaceConnectionStringName = ConnectionStringName,
-                EventHubName = EventHubName
+                ConnectionString = connectionString
             };
 
             PatternLayout patternLayout = new PatternLayout
@@ -535,7 +453,7 @@ namespace Logging.Tests
 
             appender.PublicOnClose();
 
-            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>()), Times.Once);
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Never);
 
         }
@@ -543,9 +461,7 @@ namespace Logging.Tests
         [TestMethod]
         public void AppendBatchSendSingleFailureTest()
         {
-            string ConnectionStringName = ConfigurationManager.ConnectionStrings[0].Name;
-            string EventHubName = "EventHubName";
-            string connectionString = ConfigurationManager.ConnectionStrings[0].ConnectionString;
+            string connectionString = config[eventHubConnection];
 
             string message = "This is a logging message";
 
@@ -554,8 +470,8 @@ namespace Logging.Tests
 
             IEventHubClient evenHub = mockEventHub.Object;
 
-            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()))
-                       .Callback((string cs, string ehn) => { Assert.AreEqual(connectionString, cs); Assert.AreEqual(EventHubName, ehn); })
+            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>()))
+                       .Callback((string cs) => { Assert.AreEqual(connectionString, cs);})
                        .Returns(evenHub);
 
             mockEventHub.SetupSequence(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
@@ -566,7 +482,7 @@ namespace Logging.Tests
 
             TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object)
             {
-                EventHubNamespaceConnectionStringName = ConnectionStringName
+                ConnectionString = connectionString
             };
 
             PatternLayout patternLayout = new PatternLayout
@@ -583,7 +499,7 @@ namespace Logging.Tests
 
             appender.PublicOnClose();
 
-            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>()), Times.Once);
             mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.Exactly(2));
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
@@ -592,9 +508,7 @@ namespace Logging.Tests
         [TestMethod]
         public void AppendBatchSendMultipleFailureTest()
         {
-            string ConnectionStringName = ConfigurationManager.ConnectionStrings[0].Name;
-            string EventHubName = "EventHubName";
-            string connectionString = ConfigurationManager.ConnectionStrings[0].ConnectionString;
+            string connectionString = config[eventHubConnection];
 
             string message = "This is a logging message";
 
@@ -603,8 +517,8 @@ namespace Logging.Tests
 
             IEventHubClient evenHub = mockEventHub.Object;
 
-            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()))
-                       .Callback((string cs, string ehn) => { Assert.AreEqual(connectionString, cs); Assert.AreEqual(EventHubName, ehn); })
+            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>()))
+                       .Callback((string cs) => { Assert.AreEqual(connectionString, cs); })
                        .Returns(evenHub);
 
             mockEventHub.SetupSequence(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
@@ -616,8 +530,7 @@ namespace Logging.Tests
 
             TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object)
             {
-                EventHubNamespaceConnectionStringName = ConnectionStringName,
-                EventHubName = EventHubName
+                ConnectionString = connectionString
             };
 
             PatternLayout patternLayout = new PatternLayout
@@ -635,7 +548,7 @@ namespace Logging.Tests
 
             appender.PublicOnClose();
 
-            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>()), Times.Once);
             mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.Exactly(2));
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
@@ -656,9 +569,7 @@ namespace Logging.Tests
         [TestMethod]
         public void DisposeWithBufferTest()
         {
-            string ConnectionStringName = ConfigurationManager.ConnectionStrings[0].Name;
-            string EventHubName = "EventHubName";
-            string connectionString = ConfigurationManager.ConnectionStrings[0].ConnectionString;
+            string connectionString = config[eventHubConnection];
 
             string message = "This is a logging message";
 
@@ -667,8 +578,8 @@ namespace Logging.Tests
 
             IEventHubClient evenHub = mockEventHub.Object;
 
-            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()))
-                       .Callback((string cs, string ehn) => { Assert.AreEqual(connectionString, cs); Assert.AreEqual(EventHubName, ehn); })
+            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>()))
+                       .Callback((string cs) => { Assert.AreEqual(connectionString, cs); })
                        .Returns(evenHub);
 
             mockEventHub.Setup(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
@@ -678,8 +589,7 @@ namespace Logging.Tests
 
             TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object)
             {
-                EventHubNamespaceConnectionStringName = ConnectionStringName,
-                EventHubName = EventHubName
+                ConnectionString = connectionString
             };
 
             PatternLayout patternLayout = new PatternLayout
@@ -698,70 +608,11 @@ namespace Logging.Tests
 
             appender.Dispose();
 
-            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>()), Times.Once);
             mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.Once);
             mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
 
         }
-
-        //[TestMethod]
-        //public void AppSettingFromEnvironmentTest()
-        //{
-        //    //CUSTOMCONNSTR_
-        //    string envKey = "EventHubName";
-        //    string eventHubName = "FROM ENVIRONMENT";
-        //    TestAzureEventHubAppender appender = new TestAzureEventHubAppender(null);
-
-        //    appender.EventHubName = "FROM LOG4NET";
-        //    appender.EventHubNameAppSettingKey = envKey;
-
-        //    Environment.SetEnvironmentVariable("APPSETTING_" + envKey, eventHubName);
-
-        //    var fromAppender = appender.PublicGetConfiguredApplicationSetting(envKey);
-
-        //    Assert.AreEqual(eventHubName, fromAppender);
-
-        //}
-
-
-        //[TestMethod]
-        //public void ConnectionStringFromEnvironmentTest()
-        //{
-        //    //CUSTOMCONNSTR_
-        //    string envKey = "MyConnectionString";
-        //    string eventHubName = "FROM ENVIRONMENT";
-        //    TestAzureEventHubAppender appender = new TestAzureEventHubAppender(null);
-
-        //    appender.EventHubName = "FROM LOG4NET";
-        //    appender.EventHubNameAppSettingKey = envKey;
-
-        //    Environment.SetEnvironmentVariable("CUSTOMCONNSTR_" + envKey, eventHubName);
-
-        //    var fromAppender = appender.PublicGetConfiguredConnectionString(envKey);
-
-        //    Assert.AreEqual(eventHubName, fromAppender);
-
-        //}
-
-        //[TestMethod]
-        //public void EventhubNamegFromEnvironmentTest()
-        //{
-        //    //CUSTOMCONNSTR_
-        //    string envKey = "EventHubName";
-        //    string eventHubName = "FROM ENVIRONMENT";
-        //    TestAzureEventHubAppender appender = new TestAzureEventHubAppender(null);
-
-        //    appender.EventHubName = "FROM LOG4NET";
-        //    appender.EventHubNameAppSettingKey = envKey;
-
-        //    Environment.SetEnvironmentVariable("APPSETTING_" + envKey, eventHubName);
-
-        //    var fromAppender = appender.PublicGetConfiguredEventHubName();
-
-        //    Assert.AreEqual(eventHubName, fromAppender);
-
-        //}
-
     }
 
 

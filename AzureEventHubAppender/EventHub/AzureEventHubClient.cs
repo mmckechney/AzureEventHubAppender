@@ -1,11 +1,7 @@
-﻿using System;
+﻿using Microsoft.Azure.EventHubs;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Azure.EventHubs;
 
 namespace BlueSkyDev.Logging.EventHub
 {

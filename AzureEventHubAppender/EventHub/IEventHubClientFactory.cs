@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BlueSkyDev.Logging.EventHub
+﻿namespace BlueSkyDev.Logging.EventHub
 {
     /// <summary>
     /// Factory Interface to create an EventHubClient instances

@@ -12,7 +12,7 @@ See AzureEventHubAppender.cs for more details.
 
 ## Getting Started
 
-1. Add a Nuget reference to AzureEventHubAppender (URL TBD)
+1. Add a Nuget reference to BlueSkyDev.Logging.AzureEventHubAppender (URL TBD)
 
 2. For a .NET Framework application add the following 
 

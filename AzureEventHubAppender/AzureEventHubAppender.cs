@@ -135,28 +135,6 @@ namespace BlueSkyDev.Logging
                 throw new ArgumentNullException(message);
             }
 
-            //if (String.IsNullOrEmpty(EventHubName) && String.IsNullOrEmpty(EventHubNameAppSettingKey))
-            //{
-            //    string message = "EventHubAppSettingKey is null or empty (and not Event Hub Name is specified)";
-            //    ErrorHandler.Error(message);
-            //    throw new ArgumentNullException(message);
-            //}
-
-            //var eventHubName = GetConfiguredEventHubName();
-            //if (String.IsNullOrEmpty(eventHubName))
-            //{
-            //    string message = "EventHubName is null or empty";
-            //    ErrorHandler.Error(message);
-            //    throw new ArgumentNullException(message);
-            //}
-
-            //if (String.IsNullOrEmpty(ConnectionString))
-            //{
-            //    string message = $"Can not find Connection string: {EventHubNamespaceConnectionStringName}";
-            //    ErrorHandler.Error(message);
-            //    throw new ArgumentNullException(message);
-            //}
-
             StartSendingTask();
         }
 
@@ -181,7 +159,7 @@ namespace BlueSkyDev.Logging
         }
 
         /// <summary>
-        /// Send a logging event to the event Hub - at this point - add it to the buffer, the sending taks will do the heavy lifting
+        /// Send a logging event to the event Hub - at this point - add it to the buffer, the sending tasks will do the heavy lifting
         /// </summary>
         /// <param name="loggingEvent"></param>
         protected override void Append(LoggingEvent loggingEvent)
@@ -201,8 +179,9 @@ namespace BlueSkyDev.Logging
         /// <returns>EventData for the specificed LoggingEvent</returns>
         protected EventData GetEventData(LoggingEvent loggingEvent)
         {
-            string content = RenderLoggingEvent(loggingEvent);
-            string message = JsonConvert.SerializeObject(new { data = content, host = GetHostName() }, Formatting.None);
+            //string content = RenderLoggingEvent(loggingEvent);
+            string content = RenderLoggingEventToJson(loggingEvent);
+            string message = JsonConvert.SerializeObject(new { data = content, host = GetHostName() }, Formatting.Indented);
             EventData eventData = new EventData(Encoding.UTF8.GetBytes(message));
             return eventData;
         }
@@ -211,6 +190,12 @@ namespace BlueSkyDev.Logging
         /// Sending task - this reads EventData from the buffer - gethers up a batch (if avaialable) and send to the event hub
         /// </summary>
         /// <returns></returns>
+        protected string RenderLoggingEventToJson(LoggingEvent loggingEvent)
+        {
+            var data = loggingEvent.GetLoggingEventData();
+            string eventJson = JsonConvert.SerializeObject(data, Formatting.Indented);
+            return eventJson;
+        }
         private async Task Sender()
         {
             var connectionString = this.ConnectionString;

@@ -17,8 +17,8 @@
    <RepositoryUrl>https://github.com/mmckechney/AzureEventHubAppender</RepositoryUrl>
    <PackageId>BlueSkyDev.Logging.AzureEventHubAppender</PackageId>
    <Authors>BlueSkyDev.co</Authors>
-   <AssemblyName>BlueSkyDev.Logger.AzureEventHubAppender</AssemblyName>
-   <RootNamespace>BlueSkyDev.Logger</RootNamespace>
+   <AssemblyName>BlueSkyDev.Logging.AzureEventHubAppender</AssemblyName>
+   <RootNamespace>BlueSkyDev.Logging</RootNamespace>
 </PropertyGroup> 
 
 </Project>

@@ -181,7 +181,7 @@ namespace BlueSkyDev.Logging
         {
             //string content = RenderLoggingEvent(loggingEvent);
             string content = RenderLoggingEventToJson(loggingEvent);
-            string message = JsonConvert.SerializeObject(new { data = content, host = GetHostName() }, Formatting.Indented);
+            string message = JsonConvert.SerializeObject(new { data = content, host = GetHostName() }, Formatting.None);
             EventData eventData = new EventData(Encoding.UTF8.GetBytes(message));
             return eventData;
         }
@@ -193,7 +193,7 @@ namespace BlueSkyDev.Logging
         protected string RenderLoggingEventToJson(LoggingEvent loggingEvent)
         {
             var data = loggingEvent.GetLoggingEventData();
-            string eventJson = JsonConvert.SerializeObject(data, Formatting.Indented);
+            string eventJson = JsonConvert.SerializeObject(data, Formatting.None);
             return eventJson;
         }
         private async Task Sender()

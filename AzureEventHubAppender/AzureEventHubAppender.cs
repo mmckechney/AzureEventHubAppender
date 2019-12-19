@@ -47,6 +47,7 @@ namespace BlueSkyDev.Logging
     /// </summary>
     public class AzureEventHubAppender : AppenderSkeleton, IDisposable
     {
+        const string ConnectionStringEnvVariable = "AzureEventHubAppenderConnectionString";
         #region Constructor 
 
         /// <summary>
@@ -115,6 +116,8 @@ namespace BlueSkyDev.Logging
         /// </summary>
         public int MaxRetries { get; set; } = 100;
 
+        public bool LogAsJson { get; set; } = true;
+
 
         public TimeSpan EventHubRetryDelay { get; set; } = TimeSpan.FromMilliseconds(1500);
         #endregion
@@ -130,9 +133,14 @@ namespace BlueSkyDev.Logging
 
             if (String.IsNullOrEmpty(ConnectionString))
             {
-                string message = "ConnectionString is null or empty";
-                ErrorHandler.Error(message);
-                throw new ArgumentNullException(message);
+                ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringEnvVariable);
+
+                if (String.IsNullOrEmpty(ConnectionString))
+                {
+                    string message = "ConnectionString is null or empty";
+                    ErrorHandler.Error(message);
+                    throw new ArgumentNullException(message);
+                }
             }
 
             StartSendingTask();
@@ -179,9 +187,17 @@ namespace BlueSkyDev.Logging
         /// <returns>EventData for the specificed LoggingEvent</returns>
         protected EventData GetEventData(LoggingEvent loggingEvent)
         {
-            //string content = RenderLoggingEvent(loggingEvent);
-            string content = RenderLoggingEventToJson(loggingEvent);
-            string message = JsonConvert.SerializeObject(new { data = content, host = GetHostName() }, Formatting.None);
+            string message = "";
+            string content = RenderLoggingEvent(loggingEvent);
+            if(this.LogAsJson)
+            {
+                message = RenderLoggingEventToJson(content);
+            }
+
+            if(message == content || !this.LogAsJson)
+            {
+                message = JsonConvert.SerializeObject(new { data = content, host = GetHostName() }, Formatting.None);
+            }
             EventData eventData = new EventData(Encoding.UTF8.GetBytes(message));
             return eventData;
         }
@@ -190,11 +206,26 @@ namespace BlueSkyDev.Logging
         /// Sending task - this reads EventData from the buffer - gethers up a batch (if avaialable) and send to the event hub
         /// </summary>
         /// <returns></returns>
-        protected string RenderLoggingEventToJson(LoggingEvent loggingEvent)
+        protected string RenderLoggingEventToJson(string content)
         {
-            var data = loggingEvent.GetLoggingEventData();
-            string eventJson = JsonConvert.SerializeObject(data, Formatting.None);
-            return eventJson;
+            try
+            {
+                StringBuilder sb = new StringBuilder("{");
+                var split = content.Split(new char[] {  '|' });
+                foreach (var element in split)
+                {
+                    var es = element.Split(new char[] { '=' });
+                    sb.Append($"\"{es[0]}\":\"{es[1]}\",");
+                }
+                sb.Append($"\"host\":\"{GetHostName()}\",");
+                sb.Length = sb.Length - 1;
+                sb.Append("}");
+                return sb.ToString();
+            }catch
+            {
+                return content;
+            }
+
         }
         private async Task Sender()
         {
@@ -231,7 +262,7 @@ namespace BlueSkyDev.Logging
                     }
 
                     bool batchSent = false;
-                    int attempt = 0;                    
+                    int attempt = 0;
 
                     while (!batchSent)
                     {
@@ -245,7 +276,7 @@ namespace BlueSkyDev.Logging
                         catch (Exception exception)
                         {
                             string message = $"Exception while sending Batch to EventHub({EventHubName})";
-                            Trace.TraceError(message + " - "  + exception.ToString());
+                            Trace.TraceError(message + " - " + exception.ToString());
                             ErrorHandler.Error(message, exception);
 
                             if (attempt > MaxRetries)
@@ -344,7 +375,7 @@ namespace BlueSkyDev.Logging
             }
         }
 
-
+        
 
 
 

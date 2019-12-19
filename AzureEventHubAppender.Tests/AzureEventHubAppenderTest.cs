@@ -94,6 +94,53 @@ namespace Logging.Tests
 
         }
 
+        [TestMethod]
+        public void JsonRenderingTest()
+        {
+            string connectionString = config[eventHubConnection];
+
+            string message = "This is a logging message";
+
+            Mock<IEventHubClientFactory> mockFactory = new Mock<IEventHubClientFactory>();
+            Mock<IEventHubClient> mockEventHub = new Mock<IEventHubClient>();
+
+            IEventHubClient evenHub = mockEventHub.Object;
+
+            mockFactory.Setup(c => c.GetEventHubClient(It.IsAny<string>()))
+                       .Callback((string cs) => { Assert.AreEqual(connectionString, cs); })
+                       .Returns(evenHub);
+
+            mockEventHub.SetupSequence(m => m.SendAsync(It.IsAny<IEnumerable<EventData>>()))
+                        .Throws(new Exception("Sending is not working"))
+                        .Returns(Task.FromResult(0));
+
+            mockEventHub.Setup(m => m.CloseAsync()).Returns(Task.FromResult(0));
+
+            TestAzureEventHubAppender appender = new TestAzureEventHubAppender(mockFactory.Object)
+            {
+                ConnectionString = connectionString
+            };
+
+            PatternLayout patternLayout = new PatternLayout
+            {
+                ConversionPattern = "level:%level;message:%message"
+            };
+            patternLayout.ActivateOptions(); appender.Layout = patternLayout;
+
+
+            appender.ActivateOptions();
+
+            LoggingEvent loggingEvent = GetLoggingEvent(message);
+            appender.PublicAppend(loggingEvent);
+
+            appender.PublicOnClose();
+
+            mockFactory.Verify(mock => mock.GetEventHubClient(It.IsAny<string>()), Times.Once);
+            mockEventHub.Verify(mock => mock.SendAsync(It.IsAny<List<EventData>>()), Times.Exactly(2));
+            mockEventHub.Verify(mock => mock.CloseAsync(), Times.Once);
+
+        }
+
         private class TestAzureEventHubAppender : AzureEventHubAppender
         {
             internal TestAzureEventHubAppender(IEventHubClientFactory eventHubClientFactory) : base(eventHubClientFactory) { }

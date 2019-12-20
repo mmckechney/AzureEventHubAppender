@@ -1,15 +1,6 @@
-﻿using System;
-using System.Reflection;
-using log4net;
-using log4net.Repository;
-using log4net.Repository.Hierarchy;
-using BlueSkyDev.Logging.EventHub;
-using BlueSkyDev.Logging;
-using Microsoft.Extensions.Configuration;
-using log4net.Layout;
-using log4net.Appender;
-using log4net.Core;
+﻿using log4net;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 
 namespace AppenderConsole
@@ -24,6 +15,7 @@ namespace AppenderConsole
             
             for(int i=1;i<7;i++)
             {
+                log4net.ThreadContext.Properties["CustomColumn"] = $"Column {i}";
                 log.Info($"Log {i}");
             }
 

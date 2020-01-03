@@ -1,4 +1,4 @@
-﻿using Logging.EventHub;
+﻿using BlueSkyDev.Logging.EventHub;
 using log4net.Appender;
 using log4net.Core;
 using Microsoft.Azure.EventHubs;
@@ -6,14 +6,14 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Diagnostics;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 //using System.Web.Configuration;
 
-namespace Logging
+namespace BlueSkyDev.Logging
 {
     /// <summary>
     /// Appender for sending log data to a Azure EventHub
@@ -47,6 +47,7 @@ namespace Logging
     /// </summary>
     public class AzureEventHubAppender : AppenderSkeleton, IDisposable
     {
+        const string ConnectionStringEnvVariable = "AzureEventHubAppenderConnectionString";
         #region Constructor 
 
         /// <summary>
@@ -100,19 +101,7 @@ namespace Logging
         /// <summary>
         /// Name of the connection string to the EventHub Namespace
         /// </summary>
-        public string EventHubNamespaceConnectionStringName { get; set; }
-
-        /// <summary>
-        /// Name of the Event Hub to send the log messages to
-        /// </summary>
-        public string EventHubName { get; set; }
-
-        /// <summary>
-        /// The App Setting Key that contains the Event Hub Name - the event hub name in the app settings take presedence over the 
-        /// event Hub hame in the log4net config file
-        /// </summary>
-        public string EventHubNameAppSettingKey { get; set; }
-
+        public string ConnectionString { get; set; }
         /// <summary>
         /// Size of the internal buffer, this holds the log messages waiting to be sent to the EventHub
         /// </summary>
@@ -127,6 +116,8 @@ namespace Logging
         /// </summary>
         public int MaxRetries { get; set; } = 100;
 
+        public bool LogAsJson { get; set; } = true;
+
 
         public TimeSpan EventHubRetryDelay { get; set; } = TimeSpan.FromMilliseconds(1500);
         #endregion
@@ -140,33 +131,16 @@ namespace Logging
         {
             base.ActivateOptions();
 
-            if (String.IsNullOrEmpty(EventHubNamespaceConnectionStringName))
-            {
-                string message = "EventHubNamespaceConnectionStringName is null or empty";
-                ErrorHandler.Error(message);
-                throw new ArgumentNullException(message);
-            }
-
-            if (String.IsNullOrEmpty(EventHubName) && String.IsNullOrEmpty(EventHubNameAppSettingKey))
-            {
-                string message = "EventHubAppSettingKey is null or empty (and not Event Hub Name is specified)";
-                ErrorHandler.Error(message);
-                throw new ArgumentNullException(message);
-            }
-
-            var eventHubName = GetConfiguredEventHubName();
-            if (String.IsNullOrEmpty(eventHubName))
-            {
-                string message = "EventHubName is null or empty";
-                ErrorHandler.Error(message);
-                throw new ArgumentNullException(message);
-            }
-
             if (String.IsNullOrEmpty(ConnectionString))
             {
-                string message = $"Can not find Connection string: {EventHubNamespaceConnectionStringName}";
-                ErrorHandler.Error(message);
-                throw new ArgumentNullException(message);
+                ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringEnvVariable);
+
+                if (String.IsNullOrEmpty(ConnectionString))
+                {
+                    string message = "ConnectionString is null or empty";
+                    ErrorHandler.Error(message);
+                    throw new ArgumentNullException(message);
+                }
             }
 
             StartSendingTask();
@@ -193,7 +167,7 @@ namespace Logging
         }
 
         /// <summary>
-        /// Send a logging event to the event Hub - at this point - add it to the buffer, the sending taks will do the heavy lifting
+        /// Send a logging event to the event Hub - at this point - add it to the buffer, the sending tasks will do the heavy lifting
         /// </summary>
         /// <param name="loggingEvent"></param>
         protected override void Append(LoggingEvent loggingEvent)
@@ -213,8 +187,17 @@ namespace Logging
         /// <returns>EventData for the specificed LoggingEvent</returns>
         protected EventData GetEventData(LoggingEvent loggingEvent)
         {
+            string message = "";
             string content = RenderLoggingEvent(loggingEvent);
-            string message = JsonConvert.SerializeObject(new { data = content, host = GetHostName() }, Formatting.None);
+            if(this.LogAsJson)
+            {
+                message = RenderLoggingEventToJson(content);
+            }
+
+            if(message == content || !this.LogAsJson)
+            {
+                message = JsonConvert.SerializeObject(new { data = content, host = GetHostName() }, Formatting.None);
+            }
             EventData eventData = new EventData(Encoding.UTF8.GetBytes(message));
             return eventData;
         }
@@ -223,15 +206,36 @@ namespace Logging
         /// Sending task - this reads EventData from the buffer - gethers up a batch (if avaialable) and send to the event hub
         /// </summary>
         /// <returns></returns>
+        protected string RenderLoggingEventToJson(string content)
+        {
+            try
+            {
+                StringBuilder sb = new StringBuilder("{");
+                var split = content.Split(new char[] {  '|' });
+                foreach (var element in split)
+                {
+                    var es = element.Split(new char[] { '=' });
+                    sb.Append($"\"{es[0]}\":\"{es[1]}\",");
+                }
+                sb.Append($"\"host\":\"{GetHostName()}\",");
+                sb.Length = sb.Length - 1;
+                sb.Append("}");
+                return sb.ToString();
+            }catch
+            {
+                return content;
+            }
+
+        }
         private async Task Sender()
         {
-            var connectionString = GetConfiguredConnectionString(EventHubNamespaceConnectionStringName);
-            var eventHubName = GetConfiguredEventHubName();
+            var connectionString = this.ConnectionString;
+            var eventHubName = this.EventHubName;
             try
             {
                 // Open session with the Event Hub.
                 //
-                IEventHubClient eventHubClient = EventHubClientFactory.GetEventHubClient(connectionString, eventHubName);
+                IEventHubClient eventHubClient = EventHubClientFactory.GetEventHubClient(connectionString);
 
                 while (!Buffer.IsCompleted)  // run while there is data avaialble
                 {
@@ -258,7 +262,7 @@ namespace Logging
                     }
 
                     bool batchSent = false;
-                    int attempt = 0;                    
+                    int attempt = 0;
 
                     while (!batchSent)
                     {
@@ -272,7 +276,7 @@ namespace Logging
                         catch (Exception exception)
                         {
                             string message = $"Exception while sending Batch to EventHub({EventHubName})";
-                            Trace.TraceError(message + " - "  + exception.ToString());
+                            Trace.TraceError(message + " - " + exception.ToString());
                             ErrorHandler.Error(message, exception);
 
                             if (attempt > MaxRetries)
@@ -311,7 +315,13 @@ namespace Logging
         #endregion
 
         #region Properties
-
+        public string EventHubName
+        {
+            get
+            {
+                return Regex.Match(this.ConnectionString, "sb://.*/").Value.Replace("sb://", "").Replace("/", "");
+            }
+        }
         /// <summary>
         /// Factory use to create EventHubClient objects
         /// </summary>
@@ -351,13 +361,7 @@ namespace Logging
             }
         }
 
-        public string ConnectionString => GetConfiguredConnectionString(EventHubNamespaceConnectionStringName);
 
-        /// <summary>
-        /// host name to add to the outoing messages - 
-        /// ideally this is the Web Site Name environment variable - but if this is null or empty - then use the host name
-        /// this is the hostname shown in splunk
-        /// </summary>
         protected string GetHostName()
         {
             string webSiteName = Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME"); // this is the name of the App Service
@@ -371,61 +375,10 @@ namespace Logging
             }
         }
 
-        protected string GetConfiguredEventHubName()
-        {
-            // A value in the App Settings or Web Config take precedence 
-            string name = GetConfiguredApplicationSetting(EventHubNameAppSettingKey);
-
-            if (String.IsNullOrEmpty(name))
-            {
-                return EventHubName;  // this is the one from the log4net configuration file
-            }
-            else
-            {
-                return name;
-            }
-        }
-        protected string GetConfiguredApplicationSetting(string key)
-        {
-
-            // Get from Environment/App Setting
-            string environmentKey = "APPSETTING_" + key; // this pattern is for Azure App Services - not sure about others
-            string variable = Environment.GetEnvironmentVariable(environmentKey);
-
-            if (string.IsNullOrEmpty(variable))
-            {
-                // Get from web config
-
-                string setting = ConfigurationManager.AppSettings[key];
-                return setting;
-            }
-            else
-            {
-                return variable;
-            }
+        
 
 
-        }
 
-        protected string GetConfiguredConnectionString(string key)
-        {
-            // Get from Environment/app Setting
-            string environmentKey = "CUSTOMCONNSTR_" + key; // this pattern is for Azure App Services - not sure about others
-            string variable = Environment.GetEnvironmentVariable(environmentKey);
-
-            if (string.IsNullOrEmpty(variable))
-            {
-                // Get from web config
-
-                string connectionString = ConfigurationManager.ConnectionStrings[key]?.ConnectionString;
-                return connectionString;
-            }
-            else
-            {
-                return variable;
-            }
-
-        }
         #endregion
     }
 }

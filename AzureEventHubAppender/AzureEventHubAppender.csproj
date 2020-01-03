@@ -10,11 +10,15 @@
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
   </ItemGroup>
-  <PropertyGroup>
+ <PropertyGroup>
    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
    <PackageProjectUrl>https://github.com/mmckechney/AzureEventHubAppender</PackageProjectUrl>
    <RepositoryUrl>https://github.com/mmckechney/AzureEventHubAppender</RepositoryUrl>
+   <PackageId>BlueSkyDev.Logging.AzureEventHubAppender</PackageId>
+   <Authors>BlueSkyDev.co</Authors>
+   <AssemblyName>BlueSkyDev.Logging.AzureEventHubAppender</AssemblyName>
+   <RootNamespace>BlueSkyDev.Logging</RootNamespace>
 </PropertyGroup> 
 
 </Project>

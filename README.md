@@ -7,9 +7,6 @@ and the backend.  As the front end taked in messages, they are stored in the blo
 that reads from the blocking collection and sends messages to the event hub.  If there are multiple messages available they
 will be sent to the event hub.
 
-
-See AzureEventHubAppender.cs for more details.
-
 ## Getting Started
 
 1. Add a Nuget reference to BlueSkyDev.Logging.AzureEventHubAppender (URL TBD)

@@ -1,5 +1,7 @@
 # Introduction
 
+[![Build Status](https://dev.azure.com/mckechney/Azure%20EventHub%20Appender/_apis/build/status/mmckechney.AzureEventHubAppender?branchName=master)](https://dev.azure.com/mckechney/Azure%20EventHub%20Appender/_build/latest?definitionId=21&branchName=master)
+
 This project is a log4net appender that will write to an Azure Event Hub.  
 
 This Appender has a front end that takes in messages. A blocking collection is used as a buffer between the front end

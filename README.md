@@ -9,7 +9,7 @@ will be sent to the event hub.
 
 ## Getting Started
 
-1. Add a Nuget reference to BlueSkyDev.Logging.AzureEventHubAppender (URL TBD)
+1. Add a Nuget reference to [BlueSkyDev.Logging.AzureEventHubAppender](https://www.nuget.org/packages/BlueSkyDev.Logging.AzureEventHubAppender/)
 
 2. For a .NET Framework application add the following log4net configuration to either your log4net.config file or yout app.config file.
 

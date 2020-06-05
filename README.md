@@ -1,5 +1,7 @@
 # Introduction
 
+[![Build Status](https://dev.azure.com/mckechney/Azure%20EventHub%20Appender/_apis/build/status/mmckechney.AzureEventHubAppender?branchName=master)](https://dev.azure.com/mckechney/Azure%20EventHub%20Appender/_build/latest?definitionId=21&branchName=master)
+
 This project is a log4net appender that will write to an Azure Event Hub.  
 
 This Appender has a front end that takes in messages. A blocking collection is used as a buffer between the front end
@@ -9,7 +11,7 @@ will be sent to the event hub.
 
 ## Getting Started
 
-1. Add a Nuget reference to BlueSkyDev.Logging.AzureEventHubAppender (URL TBD)
+1. Add a Nuget reference to [BlueSkyDev.Logging.AzureEventHubAppender](https://www.nuget.org/packages/BlueSkyDev.Logging.AzureEventHubAppender/)
 
 2. For a .NET Framework application add the following log4net configuration to either your log4net.config file or yout app.config file.
 

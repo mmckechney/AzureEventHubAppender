@@ -54,7 +54,7 @@ steps:
 
 - task: CmdLine@2
   inputs:
-    script: dotnet pack ./AzureEventHubAppender/AzureEventHubAppender.csproj /p:Version=$(majorVersion).$(minorVersion).$(patchVersion) --configuration $(buildConfiguration)
+    script: dotnet pack ./AzureEventHubAppender/AzureEventHubAppender.csproj /p:Version=$(majorVersion).$(minorVersion).$(patchVersion) --configuration $(buildConfiguration) ---output $(Build.ArtifactStagingDirectory)
 
 - task: NuGetCommand@2
   displayName: "Push NuGet package to artifact repository"

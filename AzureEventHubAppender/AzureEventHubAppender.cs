@@ -1,6 +1,7 @@
 ﻿using BlueSkyDev.Logging.EventHub;
 using log4net.Appender;
 using log4net.Core;
+using Microsoft.Azure.Amqp;
 using Microsoft.Azure.EventHubs;
 using Newtonsoft.Json;
 using System;
@@ -10,6 +11,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 //using System.Web.Configuration;
 
@@ -98,10 +100,28 @@ namespace BlueSkyDev.Logging
         #endregion
 
         #region Appender Properties
+        private string connectionString = string.Empty;
         /// <summary>
         /// Name of the connection string to the EventHub Namespace
         /// </summary>
-        public string ConnectionString { get; set; }
+        public string ConnectionString { get
+            {
+                return this.connectionString;
+            } 
+            set
+            {
+                this.connectionString = value ;
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    eventHubClient = EventHubClientFactory.GetEventHubClient(value);
+                }
+            }
+        }
+
+        /// <summary>
+        /// EventHub Client. This is created and updated when the ConnectionString is ist
+        /// </summary>
+        private IEventHubClient eventHubClient = null;
         /// <summary>
         /// Size of the internal buffer, this holds the log messages waiting to be sent to the EventHub
         /// </summary>
@@ -132,18 +152,20 @@ namespace BlueSkyDev.Logging
             base.ActivateOptions();
 
             if (String.IsNullOrEmpty(ConnectionString))
-            {
+            { 
+                //Try to set the connection string via an environment variable.
                 ConnectionString = Environment.GetEnvironmentVariable(ConnectionStringEnvVariable);
 
                 if (String.IsNullOrEmpty(ConnectionString))
                 {
-                    string message = "ConnectionString is null or empty";
+                    string message = "ConnectionString is null or empty. Will not start sending events until this is set.";
                     ErrorHandler.Error(message);
-                    throw new ArgumentNullException(message);
                 }
             }
-
-            StartSendingTask();
+            if (this.eventHubClient != null)
+            {
+                StartSendingTask();
+            }
         }
 
         protected override bool RequiresLayout => true;
@@ -234,8 +256,10 @@ namespace BlueSkyDev.Logging
             try
             {
                 // Open session with the Event Hub.
-                //
-                IEventHubClient eventHubClient = EventHubClientFactory.GetEventHubClient(connectionString);
+                if(this.eventHubClient == null)
+                {
+                    this.eventHubClient = EventHubClientFactory.GetEventHubClient(this.ConnectionString);
+                }
 
                 while (!Buffer.IsCompleted)  // run while there is data avaialble
                 {
@@ -357,7 +381,7 @@ namespace BlueSkyDev.Logging
             // Get the Sender going - if not done already
             if (SendingTask == null)
             {
-                SendingTask = Task.Run(() => Sender());
+                SendingTask = Task.Run(() =>  Sender());
             }
         }
 

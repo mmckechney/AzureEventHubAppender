@@ -11,7 +11,7 @@ variables:
   buildConfiguration: 'Release'
   majorVersion : 1
   minorVersion : 2
-  patchVersion : 0
+  patchVersion : 1
 
 steps:
 
@@ -51,6 +51,10 @@ steps:
     majorVersion: $(majorVersion)
     minorVersion: $(minorVersion)
     patchVersion: $(patchVersion)
+
+- task: CmdLine@2
+  inputs:
+    script: dotnet pack ./AzureEventHubAppender/AzureEventHubAppender.csproj /p:Version=1$(majorVersion).$(minorVersion).$(patchVersion)
 
 - task: NuGetCommand@2
   displayName: "Push NuGet package to artifact repository"

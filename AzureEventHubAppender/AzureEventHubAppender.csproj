@@ -1,24 +1,21 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="log4net" Version="2.0.8" />
-    <PackageReference Include="Microsoft.Azure.EventHubs" Version="4.1.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
+    <PackageReference Include="log4net" Version="2.0.12" />
+    <PackageReference Include="Microsoft.Azure.EventHubs" Version="4.3.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
   </ItemGroup>
- <PropertyGroup>
-   <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-   <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-   <PackageProjectUrl>https://github.com/mmckechney/AzureEventHubAppender</PackageProjectUrl>
-   <RepositoryUrl>https://github.com/mmckechney/AzureEventHubAppender</RepositoryUrl>
-   <PackageId>BlueSkyDev.Logging.AzureEventHubAppender</PackageId>
-   <Authors>BlueSkyDev.co</Authors>
-   <AssemblyName>BlueSkyDev.Logging.AzureEventHubAppender</AssemblyName>
-   <RootNamespace>BlueSkyDev.Logging</RootNamespace>
-</PropertyGroup> 
-
+  <PropertyGroup>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageProjectUrl>https://github.com/mmckechney/AzureEventHubAppender</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mmckechney/AzureEventHubAppender</RepositoryUrl>
+    <PackageId>BlueSkyDev.Logging.AzureEventHubAppender</PackageId>
+    <Authors>BlueSkyDev.co</Authors>
+    <AssemblyName>BlueSkyDev.Logging.AzureEventHubAppender</AssemblyName>
+    <RootNamespace>BlueSkyDev.Logging</RootNamespace>
+  </PropertyGroup>
 </Project>

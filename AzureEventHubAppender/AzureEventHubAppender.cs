@@ -256,11 +256,10 @@ namespace BlueSkyDev.Logging
             try
             {
                 // Open session with the Event Hub.
-                if(this.eventHubClient == null)
+                if(this.eventHubClient == null && !string.IsNullOrEmpty(this.ConnectionString))
                 {
                     this.eventHubClient = EventHubClientFactory.GetEventHubClient(this.ConnectionString);
                 }
-
                 while (!Buffer.IsCompleted)  // run while there is data avaialble
                 {
                     EventData item = null;
@@ -302,6 +301,11 @@ namespace BlueSkyDev.Logging
                             string message = $"Exception while sending Batch to EventHub({EventHubName})";
                             Trace.TraceError(message + " - " + exception.ToString());
                             ErrorHandler.Error(message, exception);
+                            //If the connection string is wrong, we'll never get the messages through, so stop trying (covers bad host name, bad eventhub name (status 404) and bad signature (status 401)
+                            if (exception.Message.ToLower().Contains("no such host") || exception.Message.ToLower().Contains("status-code: 404") || exception.Message.ToLower().Contains("status-code: 401") )
+                            {
+                                return;
+                            }
 
                             if (attempt > MaxRetries)
                             {

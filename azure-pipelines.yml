@@ -11,7 +11,7 @@ variables:
   buildConfiguration: 'Release'
   majorVersion : 1
   minorVersion : 3
-  patchVersion : 0
+  patchVersion : 2
 
 steps:
 
